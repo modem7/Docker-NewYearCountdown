@@ -14,12 +14,12 @@ headers. This brings it up to the same standard as the siblings.
 2. Harden `conf/nginx-site.conf` (gzip + security headers)
 3. Replace `.github/workflows/CI.yml` with a real `.github/workflows/test.yml`
 4. Add `.gitignore`
+5. Consolidate repo/label management onto `.github/settings.yml`
 
-Out of scope: repository-settings automation (`.github/settings.yml`),
-renaming `LICENSE` to `LICENCE.txt`, restructuring the `index.html` →
-`countdown.html` redirect, `.hadolint.yaml` (not universally used across the
-sibling repos; the Dockerfile here is simple enough not to need rule
-overrides).
+Out of scope: renaming `LICENSE` to `LICENCE.txt`, restructuring the
+`index.html` → `countdown.html` redirect, `.hadolint.yaml` (not universally
+used across the sibling repos; the Dockerfile here is simple enough not to
+need rule overrides).
 
 ## 1. README rewrite
 
@@ -128,6 +128,44 @@ Add, matching the pattern already used in `docker-rickroll`/`docker-starwars`:
 .claude/
 ```
 
+## 5. Repository settings consolidation (`.github/settings.yml`)
+
+`docker-rickroll` and `docker-starwars` both manage repo metadata and
+labels entirely through `.github/settings.yml` (the
+[repository-settings app](https://github.com/apps/settings)/
+[repository-settings/app](https://github.com/repository-settings/app)),
+and neither has the older CI-based label-sync mechanism
+(`.github/config/labels.yml` + a workflow running
+`julb/action-manage-label`) that `Docker-NewYearCountdown` still has. To
+actually match the siblings rather than adding a third, divergent
+mechanism:
+
+- Add `.github/settings.yml` with:
+  - `repository:` block — `name: Docker-NewYearCountdown` (must match the
+    actual repo name; the app renames the repo if this differs),
+    description, `homepage: https://hub.docker.com/r/modem7/newyearcountdown`,
+    `topics: docker, new-year, countdown, nginx, self-hosted, homelab, docker-compose`,
+    and the same issue/wiki/merge/branch-protection-adjacent flags used in
+    `docker-starwars/.github/settings.yml` (`has_issues: true`,
+    `has_wiki: false`, `has_downloads: true`, `has_projects: false`,
+    `has_discussions: false`, `default_branch: master`,
+    `allow_squash_merge/rebase_merge/merge_commit: true`,
+    `delete_branch_on_merge: true`, `allow_update_branch: true`,
+    `enable_automated_security_fixes/vulnerability_alerts: true`)
+  - `labels:` block — ported 1:1 from the existing
+    `.github/config/labels.yml` (`bug`, `dependencies`, `documentation`,
+    `duplicate`, `enhancement`, `good first issue`, `help wanted`,
+    `invalid`, `question`, `wontfix`). No `content-freshness` label —
+    that's specific to starwars' upstream-sync workflow, which this repo
+    doesn't have.
+- Delete `.github/config/labels.yml` and `.github/workflows/labelsync.yml`
+
+**Confirmed:** checked `docker-starwars`'s live repo state via `gh api
+/repos/modem7/docker-starwars` — its actual topics/homepage/description
+exactly match `.github/settings.yml`, confirming the repository-settings
+app is installed and active on the `modem7` account. The consolidation is
+safe; no gap in label-sync coverage is expected.
+
 ## Testing
 
 The new `test.yml` workflow itself *is* the testing for this change — no
@@ -145,3 +183,6 @@ wait for real New Year's Eve).
 - `.github/workflows/test.yml` (new)
 - `.github/scripts/test-countdown.js` (new)
 - `.gitignore` (new)
+- `.github/settings.yml` (new)
+- `.github/config/labels.yml` (deleted)
+- `.github/workflows/labelsync.yml` (deleted)

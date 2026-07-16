@@ -201,12 +201,12 @@ be churn with no user-visible benefit.
   - Add `'use strict'` so this class of bug (undeclared variable) fails
     loudly instead of silently creating a global
 - **`countdown.html`**:
-  - Fix the credit anchor: currently `<a href="...patrickgold/newyear-countdown"
-    target="_blank"></a>` has no visible text and is missing
-    `rel="noopener noreferrer"` (the standard safety attribute for
-    `target="_blank"` links, preventing the opened page from accessing
-    `window.opener`). Give it real link text (e.g. "Original by
-    patrickgold") and the `rel` attribute.
+  - Remove the credit anchor entirely: currently
+    `<a href="...patrickgold/newyear-countdown" target="_blank"></a>` has
+    no visible text, so it's already invisible on the page and does
+    nothing for a visitor — the page reads fine without it, and
+    attribution to the original creator already lives in the README's
+    Credits section (section 1), so nothing is lost.
   - Add `defer` to `<script src="countdown.js">`
   - Add a `<meta name="description">`
 - **`index.html`** (the GitHub Pages redirect shim): add `defer` to its
@@ -243,6 +243,6 @@ wait for real New Year's Eve).
 - `.github/config/labels.yml` (deleted)
 - `.github/workflows/labelsync.yml` (deleted)
 - `src/countdown.js` (rewrite)
-- `src/countdown.html` (credit link fix, `defer`, meta description)
+- `src/countdown.html` (remove invisible credit anchor, `defer`, meta description)
 - `src/index.html` (meta description)
 - `src/favicon.svg` (new) + a `<link rel="icon">` reference in both HTML files

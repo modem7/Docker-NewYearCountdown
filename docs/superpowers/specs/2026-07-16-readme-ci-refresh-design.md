@@ -106,10 +106,10 @@ New workflow, triggered on push/PR touching `Dockerfile`, `src/**`,
 9. Check container runs as non-root (`uid=101`), no `sudo`, no
    world-writable files under `/usr/share/nginx/html`
 10. Set up Node 24, install pinned `playwright@1.61.1`, cache
-    `~/.cache/ms-playwright` keyed on that version, install Chromium +
-    Firefox
-11. **Rollover test** (`.github/scripts/test-countdown.js`, run once per
-    engine — Chromium and Firefox):
+    `~/.cache/ms-playwright` keyed on that version, install Chromium only
+    (no browser-specific autoplay/media quirks are at play in this plain
+    countdown logic, so one engine is sufficient coverage)
+11. **Rollover test** (`.github/scripts/test-countdown.js`, Chromium only):
     - `addInitScript` overrides the page's `Date` so "now" reads a few
       seconds before the next Jan 1st 00:00:00 (local time, matching the
       app's own `new Date(getFullYear()+1 + "/1/1")` target calculation)

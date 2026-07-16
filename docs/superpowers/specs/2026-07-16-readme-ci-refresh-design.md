@@ -15,11 +15,17 @@ headers. This brings it up to the same standard as the siblings.
 3. Replace `.github/workflows/CI.yml` with a real `.github/workflows/test.yml`
 4. Add `.gitignore`
 5. Consolidate repo/label management onto `.github/settings.yml`
+6. Modernize `src/` (bug fixes + a behavior-preserving rewrite of the
+   vendored countdown code)
 
 Out of scope: renaming `LICENSE` to `LICENCE.txt`, restructuring the
-`index.html` → `countdown.html` redirect, `.hadolint.yaml` (not universally
-used across the sibling repos; the Dockerfile here is simple enough not to
-need rule overrides).
+`index.html` → `countdown.html` redirect (the meta-refresh is a deliberate
+GitHub Pages workaround — Pages serves static files only, so a client-side
+redirect is the only way to make the repo-root preview land on
+`countdown.html`; an nginx-level redirect would only help the Docker image,
+not Pages, so it wouldn't actually let us drop the meta-refresh),
+`.hadolint.yaml` (not universally used across the sibling repos; the
+Dockerfile here is simple enough not to need rule overrides).
 
 ## 1. README rewrite
 
@@ -166,6 +172,56 @@ exactly match `.github/settings.yml`, confirming the repository-settings
 app is installed and active on the `modem7` account. The consolidation is
 safe; no gap in label-sync coverage is expected.
 
+## 6. `src/` modernization
+
+The upstream project (`patrickgold/newyear-countdown`) hasn't been touched
+in nearly a decade and is treated as abandoned, so this is a
+behavior-preserving rewrite rather than a careful diff-minimizing patch —
+no more need to optimize for re-syncing with upstream later.
+
+**Hard constraint:** all existing element IDs, classes, and page titles
+stay exactly as they are (`#cd-title`, `#cd-days`, `#cd-hours`,
+`#cd-mins`, `#cd-secs`, `#cd-timetil`, `cd__title--newyear`,
+`<title>NewYear Countdown</title>`, etc.) — `test.yml`'s structure and
+rollover checks (section 3) depend on them, and changing them would just
+be churn with no user-visible benefit.
+
+- **`countdown.js`** — fix the real bug and clean up the implementation:
+  - Fix the missing declaration on `secs` (currently leaks an implicit
+    global)
+  - `var` → `const`/`let` throughout
+  - `window.onload` → `DOMContentLoaded` (nothing on this page needs a
+    full resource-load wait; the backgrounds are inline SVG, not `<img>`)
+  - `innerHTML` → `textContent` for all the countdown value/label updates
+    — every one of them is plain text, never markup, so `textContent` is
+    both more correct and marginally faster
+  - Extract the repeated "zero-pad value + pluralize label" logic
+    (currently duplicated 4x for days/hours/mins/secs) into one small
+    helper function
+  - Add `'use strict'` so this class of bug (undeclared variable) fails
+    loudly instead of silently creating a global
+- **`countdown.html`**:
+  - Fix the credit anchor: currently `<a href="...patrickgold/newyear-countdown"
+    target="_blank"></a>` has no visible text and is missing
+    `rel="noopener noreferrer"` (the standard safety attribute for
+    `target="_blank"` links, preventing the opened page from accessing
+    `window.opener`). Give it real link text (e.g. "Original by
+    patrickgold") and the `rel` attribute.
+  - Add `defer` to `<script src="countdown.js">`
+  - Add a `<meta name="description">`
+- **`index.html`** (the GitHub Pages redirect shim): add `defer` to its
+  script tag if one is ever added; currently has none, so no change
+  needed there beyond a `<meta name="description">` for consistency.
+- **Favicon**: add a minimal inline favicon (e.g. a tiny SVG referenced
+  via `<link rel="icon">`) so `/favicon.ico` requests stop falling through
+  nginx's `error_page 404 /index.html` fallback chain for no reason.
+- **`countdown.css` / `countdown.scss`**: left structurally as-is. No
+  build step compiles `.scss` → `.css` in this repo (both are committed,
+  hand-kept in sync) — not introducing a Sass build step is a deliberate
+  boundary of this rewrite, since it'd add tooling for a two-file
+  stylesheet. Vendor prefixes (`-webkit-`) are kept rather than pruned;
+  removing them is a compatibility trade for no functional gain.
+
 ## Testing
 
 The new `test.yml` workflow itself *is* the testing for this change — no
@@ -186,3 +242,7 @@ wait for real New Year's Eve).
 - `.github/settings.yml` (new)
 - `.github/config/labels.yml` (deleted)
 - `.github/workflows/labelsync.yml` (deleted)
+- `src/countdown.js` (rewrite)
+- `src/countdown.html` (credit link fix, `defer`, meta description)
+- `src/index.html` (meta description)
+- `src/favicon.svg` (new) + a `<link rel="icon">` reference in both HTML files

@@ -23,9 +23,21 @@ async function main() {
   const targetYear = now.getFullYear() + 1;
   const rollover = new Date(targetYear, 0, 1, 0, 0, 0, 0);
   const preRollover = new Date(rollover.getTime() - 5000);
+  // Install well before preRollover (30s of buffer) so a slow page load never
+  // eats into the 5s pre-rollover window we actually assert against.
+  const installTime = new Date(rollover.getTime() - 30000);
 
-  await page.clock.install({ time: preRollover });
+  // After install(), Playwright's fake clock flows in real wall-clock time
+  // during page load (see https://playwright.dev/docs/clock -
+  // "Consistent time and timers"), so how long the load takes is not
+  // deterministic. Snapping to preRollover via pauseAt() *after* load
+  // finishes - the pattern the Playwright docs recommend - pins the clock to
+  // exactly 5s before rollover regardless of load time, making the
+  // assertion below deterministic instead of racing page-load time against
+  // a 5s window.
+  await page.clock.install({ time: installTime });
   await page.goto(`${BASE_URL}/countdown.html`, { waitUntil: 'load' });
+  await page.clock.pauseAt(preRollover);
 
   await page.waitForFunction(
     () => document.getElementById('cd-secs').textContent !== '??',

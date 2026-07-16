@@ -222,6 +222,12 @@ be churn with no user-visible benefit.
   stylesheet. Vendor prefixes (`-webkit-`) are kept rather than pruned;
   removing them is a compatibility trade for no functional gain.
 
+**Deliberately not in this pass:** a visual/design refresh (fonts,
+background art, general aesthetic modernization of the countdown UI) —
+that's a separate kind of work from the code-quality/infra cleanup this
+spec covers, and belongs in its own brainstorm once this lands, likely
+pulling in the `frontend-design` skill for aesthetic direction.
+
 ## Testing
 
 The new `test.yml` workflow itself *is* the testing for this change — no

@@ -56,8 +56,9 @@ the browser clock to a few seconds before midnight on New Year's Eve and
 confirms the countdown actually rolls over to "Happy New Year!". See
 `.github/workflows/test.yml` if you want the gory details.
 
-`.woodpecker.yml` does the actual multi-arch build and Docker Hub push once
-something's merged to `master`.
+`.woodpecker.yml` does the actual multi-arch build and Docker Hub push,
+triggered manually (e.g. after a merge to `master`) rather than automatically
+on push.
 
 ## Tags
 

@@ -13,13 +13,13 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       -
         name: Check GitHub Pages status
-        uses: crazy-max/ghaction-github-status@v5
+        uses: crazy-max/ghaction-github-status@f0ef9e1cf727f9f76f8485f8c525fa03afc4ec02 # v5
         with:
           pages_threshold: major_outage
       -
         name: Deploy to GitHub Pages
         if: success()
-        uses: crazy-max/ghaction-github-pages@v5
+        uses: crazy-max/ghaction-github-pages@1d6ee9b181a81033a16bd707a1401afa978daab4 # v5
         with:
           target_branch: gh-pages
           build_dir: src

@@ -11,17 +11,13 @@ when:
         - conf/nginx-site.conf
         - .woodpecker.yml
 
+# Dockerfile lint and functional testing happen in
+# .github/workflows/test.yml, not here - this pipeline only builds and
+# pushes images.
 steps:
-  - name: lint-dockerfile
-    image: hadolint/hadolint:latest-alpine
-    commands:
-      - hadolint --version
-      - hadolint Dockerfile*
-
   - name: build-and-push
     image: woodpeckerci/plugin-docker-buildx
     privileged: true
-    depends_on: [lint-dockerfile]
     settings:
       # Not ${CI_REPO}: it mirrors the GitHub repo's exact casing
       # (modem7/Docker-NewYearCountdown), but Docker Hub repository names
